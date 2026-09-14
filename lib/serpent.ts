@@ -49,11 +49,11 @@ export function placeSerpent(g:Game,index:number,row:number,col:number,random:()
  next.combo=playerLines?g.combo+1:0;next.lines+=total;
  next.rerolls=canEarnReroll(playerLines)?1:g.rerolls;
  next.bombs=Math.min(1,g.bombs+(next.combo>0&&next.combo%BOMB_COMBO_THRESHOLD===0?1:0));
+ const available=(['bombs','rerolls','molts'] as const).filter(key=>(next[key]??0)===0);
  if(a.shellsCleared>=3||b.shellsCleared>=3){
-  const available=(['bombs','rerolls','molts'] as const).filter(key=>(next[key]??0)===0);
   if(available.length)next[available[available.length===1?0:Math.floor(random()*available.length)]]=1;
  }
- const shellPoints=[a,b].reduce((sum,phase)=>sum+(phase.shellsCleared<3?phase.shellsCleared*300:0),0);
+ const shellPoints=[a,b].reduce((sum,phase)=>sum+(phase.shellsCleared<3||available.length===0?phase.shellsCleared*300:0),0);
  const points=count*10+playerLines*100*Math.max(1,next.combo)+(b.rows.length+b.cols.length)*100+shellPoints;next.score+=points;
  if(!snake.stun){next.serpent!.next=nextStep(next.serpent!.cells,random);next.serpent=recoverDirection(next.serpent!,random);}
  if(next.pieces.every(p=>p===null))next.pieces=deal(occupied(next),random);

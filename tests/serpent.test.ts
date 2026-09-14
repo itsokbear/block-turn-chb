@@ -165,3 +165,22 @@ test('small shell clears still give points with all bonus slots full',()=>{
  const g=shellLine(2);g.bombs=g.rerolls=g.molts=1;
  const r=placeSerpent(g,0,0,0,()=>0)!;assert.equal(r.points,710);assert.equal(r.game.bombs+r.game.rerolls+r.game.molts!,3);
 });
+
+for(const shells of [3,4,7])test(`full bonus slots convert ${shells} shells to 300 points each`,()=>{
+ const g=shellLine(shells);g.bombs=g.rerolls=g.molts=1;g.combo=1;
+ const before=JSON.stringify(g),r=placeSerpent(g,0,0,0,()=>0)!;
+ assert.equal(r.points,210+shells*300);assert.equal(r.game.score,r.points);
+ assert.equal(r.game.bombs+r.game.rerolls+r.game.molts!,3);assert.equal(JSON.stringify(g),before);
+});
+test('full slots pay for shells in both clear phases',()=>{
+ const g=shellLine(3);g.bombs=g.rerolls=g.molts=1;g.board[2]=[POOP,POOP,POOP,1,1,1,0,1];
+ const r=placeSerpent(g,0,0,0,()=>0)!;assert.equal(r.points,2010);
+});
+test('filling the final slot gives a bonus without fallback points',()=>{
+ const g=shellLine(3);g.bombs=g.rerolls=1;g.board[2]=[POOP,POOP,POOP,1,1,1,0,1];
+ const r=placeSerpent(g,0,0,0,()=>0)!;assert.equal(r.game.molts,1);assert.equal(r.points,210);
+});
+test('standard combo reward can fill the final slot before shell fallback',()=>{
+ const g=shellLine(3);g.rerolls=g.molts=1;g.combo=3;
+ const r=placeSerpent(g,0,0,0,()=>0)!;assert.equal(r.game.bombs,1);assert.equal(r.points,1310);
+});
