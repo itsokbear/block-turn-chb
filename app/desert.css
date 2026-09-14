@@ -37,3 +37,11 @@ body{background:#f4e6cb}
 @keyframes sand-crumble{0%{opacity:1;transform:translate(0,0) scale(.96);background:var(--tile)}28%{opacity:.95;background:#dbb16d}75%{opacity:.65;background:#e5c38a}100%{opacity:0;background:#dec08a;transform:translate(var(--sand-x),var(--sand-y)) rotate(var(--sand-turn)) scale(.12)}}
 @media(max-width:720px){.sand-layer{inset:9px}}
 @media(prefers-reduced-motion:reduce){.sand-layer{display:none}.skin-desert .cell.cleared{animation:none!important}}
+
+/* Keep warnings legible against sand even at the dimmest pulse. */
+.skin-desert .board-wrap.risk-amber{--risk-color:#a65308}
+.skin-desert .board-wrap.risk-amber:after{border-width:3px;animation-name:desert-risk-pulse}
+@keyframes desert-risk-pulse{0%,100%{opacity:.8;box-shadow:0 0 0 1px #fff2cc,0 0 5px #a6530840}50%{opacity:1;box-shadow:0 0 0 2px #ffe1a1,0 0 18px #a6530899}}
+.skin-desert .reroll-select .piece-slot:not(:disabled){border-color:#286579;box-shadow:inset 0 0 0 1px #286579,inset 0 0 14px #28657918}
+.skin-desert .mobile-tip.reroll-tip{color:#286579}
+@media(prefers-reduced-motion:reduce){.skin-desert .board-wrap.risk-amber:after{opacity:1;box-shadow:0 0 0 1px #fff2cc}}
