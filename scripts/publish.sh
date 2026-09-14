@@ -10,5 +10,5 @@ fi
 if [ ! -r .deploy/github-pages ] || [ ! -r .deploy/known_hosts ]; then
   exec git push origin main
 fi
-export GIT_SSH_COMMAND='ssh -i .deploy/github-pages -o IdentitiesOnly=yes -o UserKnownHostsFile=.deploy/known_hosts -o StrictHostKeyChecking=yes -o BatchMode=yes -o ConnectTimeout=10'
+export GIT_SSH_COMMAND='ssh -F /dev/null -i .deploy/github-pages -o IdentitiesOnly=yes -o UserKnownHostsFile=.deploy/known_hosts -o StrictHostKeyChecking=yes -o BatchMode=yes -o ConnectTimeout=10'
 exec git push origin main

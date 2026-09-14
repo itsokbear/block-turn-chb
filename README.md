@@ -39,4 +39,4 @@ docker compose down
 
 Сохранения `brunya-game`, `brunya-best` независимы от BlockTurn даже на общем домене GitHub Pages. Старые партии не импортируются и не изменяются. Обновление PWA сохраняет текущую партию; кнопка «Обновить» появляется после загрузки нового выпуска. Scope и start URL ограничены `/block-turn-chb/`, локально — `/`.
 
-Иконки воспроизводятся из SVG персонажа: `python3 scripts/generate-icons.py` (без сторонних библиотек). Метаданные и manifest находятся в `app/layout.tsx`, `public/manifest.webmanifest`. Пустынная тема — `app/desert.css` и `public/desert.svg`.
+Иконки воспроизводятся из SVG персонажа: `python3 scripts/generate-icons.py` (без сторонних библиотек). Метаданные и manifest находятся в `app/layout.tsx`, `public/manifest.webmanifest`. Пустынная тема — `app/desert.css` и `public/desert.svg`. Орбитальный объект вместо солнца — `public/orbital.png`; происхождение и промпты — [docs/ART.md](docs/ART.md).

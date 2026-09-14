@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMax slice">
  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#f7edd9"/><stop offset="1" stop-color="#f0d6a7"/></linearGradient><linearGradient id="sand" x2=".3" y2="1"><stop stop-color="#e6c08a"/><stop offset="1" stop-color="#d6a572"/></linearGradient></defs>
  <path fill="url(#sky)" d="M0 0h1440v1000H0z"/>
- <circle cx="1150" cy="190" r="48" fill="#e9bb6c" opacity=".8"/>
  <path fill="#e8c995" d="M0 645Q240 530 530 680T1090 645T1440 635V1000H0Z"/>
  <path fill="#eed4aa" d="M0 672Q240 575 530 705Q270 635 0 712Z"/>
  <path fill="#dbb47c" d="M0 870Q350 790 610 840T1170 755T1440 820V1000H0Z"/>

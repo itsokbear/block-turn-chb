@@ -20,3 +20,9 @@ body{background:#f4e6cb}
 .modal-backdrop{background:#4c352a60}.modal{background:#fbefd9;border-color:#c8aa7e;box-shadow:0 25px 80px #3e261b33;color:#523b2a}.modal p{color:#796044}.modal p b{color:#4c3826;font-weight:600}.modal .muted{color:#8d745a}.modal-icon{color:#ac7242}.primary{background:#845b98;color:#fff7ef}.primary:hover{background:#714984}.secondary{color:#796044}.game-over{background:#f8ead4ed}.game-over>svg{color:#9564a8}.game-over p{color:#82684e}.score-pop{color:#654529;text-shadow:0 1px 3px #fff3d9}.event-caption{text-shadow:0 2px 5px #624423,0 0 18px #624423}.event-score{color:#fffaed}
 @media(max-width:720px){.shell{padding:0 16px}.shell:before{background-size:auto 100%;background-position:42% bottom}.topbar{height:86px}.skin-desert .brand>.brand-name{font-size:28px}.brand-mascot{width:30px;height:30px;margin-top:19px}.game-layout{padding-top:3px}.play-area{max-width:min(100%,max(280px,calc(100svh - 350px)))}.top-actions .icon-button{width:37px;height:37px}}
 @media(max-height:750px) and (max-width:720px){.topbar{height:70px}.skin-desert .brand>.brand-name{font-size:25px}}
+
+/* The reference sprite uses pure white for multiply compositing over the dunes. */
+.orbital-object{position:fixed;width:132px;height:132px;object-fit:contain;top:126px;right:7vw;z-index:-1;mix-blend-mode:multiply;pointer-events:none;user-select:none;opacity:.92}
+@media(max-width:1050px) and (min-width:721px){.orbital-object{width:84px;height:84px;top:113px;right:2vw}}
+@media(max-width:720px){.orbital-object{width:64px;height:64px;top:10px;right:max(64px,calc((100vw - 470px)/2 + 64px))}}
+@media(max-height:750px) and (max-width:720px){.orbital-object{width:54px;height:54px;top:8px}}
