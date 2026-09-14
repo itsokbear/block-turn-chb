@@ -26,3 +26,14 @@ body{background:#f4e6cb}
 @media(max-width:1050px) and (min-width:721px){.orbital-object{width:84px;height:84px;top:113px;right:2vw}}
 @media(max-width:720px){.orbital-object{width:64px;height:64px;top:10px;right:max(64px,calc((100vw - 470px)/2 + 64px))}}
 @media(max-height:750px) and (max-width:720px){.orbital-object{width:54px;height:54px;top:8px}}
+
+/* Cleared stones split into warm grains; never flash the old graphite palette. */
+.skin-desert .cell.cleared{animation:desert-clear .48s ease-out both}
+.skin-desert .cell.cross-flash:after{display:none}
+@keyframes desert-clear{0%{background:#f0d7a8;box-shadow:inset 0 0 8px #fff0ca66}100%{background:#e4cba1;box-shadow:inset 0 1px 3px #91653728}}
+.sand-layer{position:absolute;inset:11px;z-index:1;pointer-events:none;overflow:hidden;border-radius:5px}
+.sand-source{position:absolute;width:calc((100% - 28px)/8);height:calc((100% - 28px)/8);--tile:#e2c18a}
+.sand-source i{position:absolute;width:33.333%;height:33.333%;border-radius:2px;background:var(--tile);box-shadow:inset 0 1px #fff0c833;animation:sand-crumble .56s cubic-bezier(.2,.6,.4,1) both}
+@keyframes sand-crumble{0%{opacity:1;transform:translate(0,0) scale(.96);background:var(--tile)}28%{opacity:.95;background:#dbb16d}75%{opacity:.65;background:#e5c38a}100%{opacity:0;background:#dec08a;transform:translate(var(--sand-x),var(--sand-y)) rotate(var(--sand-turn)) scale(.12)}}
+@media(max-width:720px){.sand-layer{inset:9px}}
+@media(prefers-reduced-motion:reduce){.sand-layer{display:none}.skin-desert .cell.cleared{animation:none!important}}
