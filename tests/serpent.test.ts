@@ -26,7 +26,7 @@ function riskBoard(){const g=setup();g.board=g.board.map((r,y)=>r.map((_,x)=>g.s
 test('serpent warns red or amber after full turn without modifying state',()=>{const g=riskBoard(),before=JSON.stringify(g);assert.equal(serpentRisk(g,0,0,0),'red');assert.equal(serpentRisk({...g,bombs:1},0,0,0),'amber');assert.equal(serpentRisk({...g,rerolls:1},0,0,0),'amber');assert.equal(JSON.stringify(g),before);assert.equal(serpentRisk(g,0,3,6),null);g.pieces[1]=null;assert.equal(serpentRisk(g,0,0,0),null);});
 test('warning accounts for tail freed by movement and for stun',()=>{const g=riskBoard();g.board=g.board.map((r,y)=>r.map((_,x)=>g.serpent!.cells.includes(y*8+x)?0:(x+y)%2?1:0));g.board[2][6]=0;g.board[2][1]=0;g.board[4][1]=0;g.board[2][0]=1;g.board[2][2]=1;g.board[4][0]=1;g.board[4][2]=1;g.pieces[1]={shape:[[1],[1],[1]],color:2};assert.equal(serpentRisk(g,0,0,0),null);g.serpent!.stun=true;assert.equal(serpentRisk(g,0,0,0),'red');});
 
-function shellLine(){const g=setup();g.board[0]=[0,POOP,POOP,1,1,1,1,1];return g;}
+function shellLine(shells=3){const g=setup();g.board[0]=[0,...Array.from({length:7},(_,i)=>i<shells?POOP:1)];return g;}
 for(const choice of [0,0.5,0.999])test(`shell line fills one random empty bonus (${choice})`,()=>{
  const g=shellLine(),before=JSON.stringify(g);const r=placeSerpent(g,0,0,0,()=>choice)!.game;
  assert.equal(r.bombs,choice===0?1:0);assert.equal(r.rerolls,choice===0.5?1:0);assert.equal(r.molts,choice===0.999?1:0);assert.equal(r.goldenBomb,false);
@@ -48,11 +48,11 @@ test('shell reward fills bomb after earning three-line reroll',()=>{
  assert.equal(r.lines,3);assert.equal(r.bombs,1);assert.equal(r.rerolls,1);
 });
 test('movement shell clear earns reward without advancing combo',()=>{
- const g=setup();g.board[2]=[POOP,1,1,1,1,1,0,1];const r=placeSerpent(g,0,7,7,()=>0)!.game;
+ const g=setup();g.board[2]=[POOP,POOP,POOP,1,1,1,0,1];const r=placeSerpent(g,0,7,7,()=>0)!.game;
  assert.equal(r.lines,1);assert.equal(r.combo,0);assert.equal(r.score,110);assert.equal(r.bombs,1);
 });
 test('shell clears in both phases still earn only one reward',()=>{
- const g=shellLine();g.board[2]=[POOP,1,1,1,1,1,0,1];const r=placeSerpent(g,0,0,0,()=>0)!.game;
+ const g=shellLine();g.board[2]=[POOP,POOP,POOP,1,1,1,0,1];const r=placeSerpent(g,0,0,0,()=>0)!.game;
  assert.equal(r.lines,2);assert.equal(r.bombs+r.rerolls,1);
 });
 test('ordinary line, eating shell and bombing shell do not earn shell rewards',()=>{
@@ -129,4 +129,39 @@ test('rescue preview consumes no randomness and allows a chance to escape',()=>{
  g.pieces=[{shape:[[1,1]],color:1},null,null];
  const original=Math.random;Math.random=()=>{throw new Error('Preview consumed randomness');};
  try{assert.equal(canPlaySerpent(g),true);g.pieces[0]!.shape=Array.from({length:4},()=>[1,1,1,1]);assert.equal(canPlaySerpent(g),false);}finally{Math.random=original;}
+});
+
+for(const shells of [0,1,2,3,4,7])test(`shell threshold: ${shells} shells`,()=>{
+ const g=shellLine(shells);g.score=80;g.combo=1;
+ const before=JSON.stringify(g),r=placeSerpent(g,0,0,0,()=>0)!;
+ assert.equal(r.points,210+(shells<3?shells*300:0));assert.equal(r.game.score,80+r.points);
+ assert.equal(r.game.bombs,shells>=3?1:0);assert.equal(r.game.rerolls,0);assert.equal(r.game.molts,0);
+ assert.equal(JSON.stringify(g),before);assert.deepEqual(restoreSerpent(r.game),r.game);
+});
+for(const shells of [1,2])test(`movement clear of ${shells} shells gives points only`,()=>{
+ const g=setup();g.board[2]=[POOP,shells===2?POOP:1,1,1,1,1,0,1];
+ const r=placeSerpent(g,0,7,7,()=>0)!;
+ assert.equal(r.points,110+shells*300);assert.equal(r.game.combo,0);
+ assert.equal(r.game.bombs+r.game.rerolls+r.game.molts!,0);
+});
+test('two shells before movement and one after give points, not a random bonus',()=>{
+ const g=shellLine(2);g.board[2]=[POOP,1,1,1,1,1,0,1];
+ const r=placeSerpent(g,0,0,0,()=>0)!;
+ assert.equal(r.game.lines,2);assert.equal(r.points,1110);assert.equal(r.game.bombs+r.game.rerolls+r.game.molts!,0);
+});
+test('large and small clear in separate phases give a bonus and shell points',()=>{
+ const g=shellLine(3);g.board[2]=[POOP,1,1,1,1,1,0,1];
+ const r=placeSerpent(g,0,0,0,()=>0)!;assert.equal(r.points,510);assert.equal(r.game.bombs,1);
+});
+test('crossing lines count each shell once and combine shells across simultaneous lines',()=>{
+ for(const shells of [2,3]){
+  const g=shellLine(1);g.pieces[0]!.shape=[[1,0],[0,1]];g.board[1][1]=0;
+  for(let y=2;y<8;y++)if(y!==3)g.board[y][1]=y===2||shells===3&&y===4?POOP:1;
+  const r=placeSerpent(g,0,0,0,()=>0)!;
+  assert.equal(r.game.lines,2);assert.equal(r.points,220+(shells===2?600:0));assert.equal(r.game.bombs,shells===3?1:0);
+ }
+});
+test('small shell clears still give points with all bonus slots full',()=>{
+ const g=shellLine(2);g.bombs=g.rerolls=g.molts=1;
+ const r=placeSerpent(g,0,0,0,()=>0)!;assert.equal(r.points,710);assert.equal(r.game.bombs+r.game.rerolls+r.game.molts!,3);
 });
