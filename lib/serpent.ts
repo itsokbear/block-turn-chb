@@ -27,14 +27,13 @@ function clear(g:Game){
  const filled=occupied(g),rows=filled.flatMap((r,i)=>r.every(Boolean)?[i]:[]),cols=Array.from({length:8},(_,i)=>i).filter(i=>filled.every(r=>r[i]));
  let shellsCleared=0;
  const cells:number[]=[];g.board.forEach((r,y)=>r.forEach((v,x)=>{if(rows.includes(y)||cols.includes(x)){if(v===POOP)shellsCleared++;cells.push(y*8+x);g.board[y][x]=0;}}));
- const head=g.serpent!.cells[0],hit=rows.includes(head>>3)||cols.includes(head%8);
- return {rows,cols,cells,hit,shellsCleared};
+ return {rows,cols,cells,shellsCleared};
 }
 export function placeSerpent(g:Game,index:number,row:number,col:number,random:()=>number=Math.random){
  const p=g.pieces[index],snake=g.serpent?recoverDirection(g.serpent,random):undefined;if(!snake||!p||!fits(occupied(g),p.shape,row,col))return null;
  const next:Game={...g,board:g.board.map(r=>[...r]),pieces:g.pieces.map((p,i)=>i===index?null:p),serpent:{...snake,cells:[...snake.cells]}};
  let count=0;p.shape.forEach((r,y)=>r.forEach((v,x)=>{if(v){next.board[row+y][col+x]=p.color;count++;}}));
- const a=clear(next);let b={rows:[] as number[],cols:[] as number[],cells:[] as number[],hit:false,shellsCleared:0};let eaten:number|null=null,poop:number|null=null;
+ const a=clear(next);let b={rows:[] as number[],cols:[] as number[],cells:[] as number[],shellsCleared:0};let eaten:number|null=null,poop:number|null=null;
  if(snake.stun)next.serpent!.stun=false;
  else if(snake.next!==null){
   const target=snake.next,tail=snake.cells[5];
@@ -57,12 +56,12 @@ export function placeSerpent(g:Game,index:number,row:number,col:number,random:()
  const points=count*10+playerLines*100*Math.max(1,next.combo)+(b.rows.length+b.cols.length)*100+shellPoints;next.score+=points;
  if(!snake.stun){next.serpent!.next=nextStep(next.serpent!.cells,random);next.serpent=recoverDirection(next.serpent!,random);}
  if(next.pieces.every(p=>p===null))next.pieces=deal(occupied(next),random);
- return {game:next,cleared:[...new Set([...a.cells,...b.cells])],points,allClear:false,rowsCleared:a.rows,colsCleared:a.cols,eaten,poop};
+ return {game:next,cleared:[...new Set([...a.cells,...b.cells])],points,rowsCleared:a.rows,colsCleared:a.cols,eaten,poop};
 }
 export function bombSerpent(g:Game,row:number,col:number){
  if(!g.serpent||!g.bombs)return null;const area=bombArea(row,col,g.goldenBomb?5:3);if(!area.length)return null;
  const board=g.board.map(r=>[...r]);let count=0;for(const cell of area){if(board[cell>>3][cell%8])count++;board[cell>>3][cell%8]=0;}
- return {game:{...g,board,bombs:0,goldenBomb:false,score:g.score+count*10,serpent:{...g.serpent,stun:g.serpent.stun||area.includes(g.serpent.cells[0])}},points:count*10,cleared:area,allClear:false,rowsCleared:[] as number[],colsCleared:[] as number[],eaten:null,poop:null};
+ return {game:{...g,board,bombs:0,goldenBomb:false,score:g.score+count*10,serpent:{...g.serpent,stun:g.serpent.stun||area.includes(g.serpent.cells[0])}},points:count*10,cleared:area,rowsCleared:[] as number[],colsCleared:[] as number[],eaten:null,poop:null};
 }
 export function moltSerpent(g:Game,random:()=>number=Math.random){
  if(!g.serpent||g.molts!==1)return null;

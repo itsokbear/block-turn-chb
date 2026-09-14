@@ -73,10 +73,10 @@ export default function Home(){
   setStamped(cells);if(stampTimer.current)clearTimeout(stampTimer.current);stampTimer.current=setTimeout(()=>setStamped([]),450);
   if(index>=0&&previous.pieces.filter(Boolean).length===1)setHand(n=>n+1);
   current.current=result.game;setGame(result.game);setSelected(null);
-  const highlight=moveEvent(previous,result.game,result.allClear,index!==-1,rows,cols);
+  const highlight=moveEvent(previous,result.game,index!==-1,rows,cols);
   if(eventTimer.current)clearTimeout(eventTimer.current);setEvent(highlight?{...highlight,details:highlight.details,points:result.points,id:++eventId.current}:null);
   if(highlight)eventTimer.current=setTimeout(()=>setEvent(null),highlight.duration);
-  if(highlight?.classification)play(highlight.classification==='perfect'?'perfect':highlight.tier===3?'celebrate':highlight.tier===2?'harmony':'bright');else tone(result.cleared.length>0);
+  if(highlight?.classification)play(highlight.tier===3?'celebrate':highlight.tier===2?'harmony':'bright');else tone(result.cleared.length>0);
   message(highlight?.title?'':`${index===-1?'БОМБА · ':result.game.combo>=2?'КОМБО ×'+result.game.combo+' · ':''}+${result.points}`,result.cleared);return true;
  }
  function newGame(){setSand(null);setSnakeRun(n=>n+1);if(motionTimer.current)clearTimeout(motionTimer.current);setSwapping(null);setRotating(null);setRerollMode(false);setStamped([]);setHand(n=>n+1);setEvent(null);if(eventTimer.current)clearTimeout(eventTimer.current);setGame(freshSerpent());setSnakeFX(null);setModal(null);setSelected(null);setDrag(null);active.current=null;setNotice('');setFlash([]);}

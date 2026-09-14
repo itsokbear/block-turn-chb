@@ -184,3 +184,43 @@ test('standard combo reward can fill the final slot before shell fallback',()=>{
  const g=shellLine(3);g.rerolls=g.molts=1;g.combo=3;
  const r=placeSerpent(g,0,0,0,()=>0)!;assert.equal(r.game.bombs,1);assert.equal(r.points,1310);
 });
+
+import {bombArea,previewLines,canFitShape} from '../lib/game.ts';
+test('placement rejects overlap and bounds without mutation',()=>{
+ const g=setup();g.pieces[0]={shape:[[1,1]],color:2};g.board[0][0]=1;const before=JSON.stringify(g);
+ for(const [row,col] of [[0,0],[0,7],[-1,0],[3,1]])assert.equal(placeSerpent(g,0,row,col),null);
+ assert.equal(JSON.stringify(g),before);
+});
+test('crossing player lines match preview, score once and keep Brunya',()=>{
+ const g=setup();g.serpent!.stun=true;g.board[0]=[0,1,1,1,1,1,1,1];for(let y=1;y<8;y++)g.board[y][0]=1;
+ const before=JSON.stringify(g),preview=previewLines(occupied(g),[[1]],0,0),r=placeSerpent(g,0,0,0)!;
+ assert.equal(preview.length,15);assert.deepEqual(r.cleared,preview);assert.equal(r.points,210);assert.equal(r.game.lines,2);
+ assert.equal(r.game.bombs,0);assert.equal(r.game.goldenBomb,false);assert.deepEqual(r.game.serpent!.cells,g.serpent!.cells);
+ assert.equal(JSON.stringify(g),before);assert.deepEqual(previewLines(occupied(g),[[1]],0,1),[]);
+});
+test('combo awards capped bomb every fourth clear and can earn it again after use',()=>{
+ let g=setup();
+ for(let combo=1;combo<=8;combo++){
+  g.board=Array.from({length:8},()=>Array(8).fill(0));g.board[0]=[0,1,1,1,1,1,1,1];g.serpent!.stun=true;g.pieces=[{shape:[[1]],color:1},{shape:[[1]],color:2},null];
+  const result=placeSerpent(g,0,0,0)!;g=result.game;
+  assert.equal(g.combo,combo);assert.equal(result.points,10+100*combo);assert.equal(g.bombs,combo%4===0?1:0);
+  if(combo===4)g=bombSerpent(g,7,7)!.game;
+ }
+ assert.equal(placeSerpent(g,1,7,7)!.game.combo,0);
+});
+for(const lines of [1,2,3])test(`${lines} player lines award only the three-line reroll, capped at one`,()=>{
+ const g=setup();g.serpent!.stun=true;for(let y=0;y<lines;y++)g.board[y]=[0,1,1,1,1,1,1,1];g.pieces[0]={shape:Array.from({length:lines},()=>[1]),color:1};
+ assert.equal(placeSerpent(g,0,0,0)!.game.rerolls,lines===3?1:0);g.rerolls=1;assert.equal(placeSerpent(g,0,0,0)!.game.rerolls,1);
+});
+for(const golden of [false,true])test(`legacy golden=${golden} bomb keeps full area at edges and preserves progress`,()=>{
+ for(const [row,col] of [[0,0],[4,4],[7,7]]){
+  const g=setup();g.bombs=1;g.goldenBomb=golden;g.combo=2;g.rerolls=1;g.board[0][0]=2;const before=JSON.stringify(g);
+  const r=bombSerpent(g,row,col)!;assert.deepEqual(r.cleared,bombArea(row,col,golden?5:3));assert.equal(r.cleared.length,golden?25:9);
+  assert.equal(r.game.bombs,0);assert.equal(r.game.goldenBomb,false);assert.equal(r.game.combo,2);assert.equal(r.game.rerolls,1);assert.equal(r.game.lines,0);assert.deepEqual(r.game.pieces,g.pieces);assert.equal(JSON.stringify(g),before);
+ }
+ const g=setup();g.bombs=1;for(const [row,col] of [[-1,0],[8,0],[0,NaN]])assert.equal(bombSerpent(g,row,col),null);assert.equal(bombSerpent({...g,bombs:0},0,0),null);
+});
+test('final refill fits the collision board, including rotations',()=>{
+ const g=riskBoard();g.pieces=[{shape:[[1]],color:1},null,null];const r=placeSerpent(g,0,0,0,()=>.99)!;
+ assert.equal(r.game.pieces.filter(Boolean).length,3);assert.ok(r.game.pieces.some(p=>p&&canFitShape(occupied(r.game),p.shape)));
+});

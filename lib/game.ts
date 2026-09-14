@@ -26,16 +26,6 @@ export function deal(board?:number[][],random:()=>number=Math.random):Piece[]{
 export function fresh(): Game { return {board:Array.from({length:8},()=>Array(8).fill(0)),pieces:deal(),score:0,lines:0,combo:0,bombs:0,goldenBomb:false,rerolls:0}; }
 export function fits(board:number[][],shape:Shape,row:number,col:number) { return Number.isInteger(row)&&Number.isInteger(col)&&shape.every((r,y)=>r.every((v,x)=>!v||(row+y>=0&&row+y<8&&col+x>=0&&col+x<8&&board[row+y][col+x]===0))); }
 export function canPlay(g:Game) {return g.bombs>0||g.rerolls>0||g.pieces.some(p=>p&&canFitShape(g.board,p.shape));}
-export function place(g:Game,index:number,row:number,col:number): {game:Game; cleared:number[]; points:number; allClear:boolean;rowsCleared:number[];colsCleared:number[]}|null {
- const p=g.pieces[index];if(!p||!fits(g.board,p.shape,row,col))return null;
- const board=g.board.map(r=>[...r]);let count=0;p.shape.forEach((r,y)=>r.forEach((v,x)=>{if(v){board[row+y][col+x]=p.color;count++;}}));
- const rows=board.flatMap((r,i)=>r.every(Boolean)?[i]:[]);const cols=Array.from({length:8},(_,i)=>i).filter(c=>board.every(r=>r[c]));
- const cleared:number[]=[];board.forEach((r,y)=>r.forEach((_,x)=>{if(rows.includes(y)||cols.includes(x)){cleared.push(y*8+x);board[y][x]=0;}}));
- const lines=rows.length+cols.length;const combo=lines?g.combo+1:0;const points=count*10+lines*100*Math.max(1,combo);
- const allClear=cleared.length>0&&board.every(r=>r.every(v=>v===0));
- const pieces=g.pieces.map((p,i)=>i===index?null:p);
- return {game:{board,pieces:pieces.every(p=>p===null)?deal(board):pieces,score:g.score+points,lines:g.lines+lines,combo,bombs:allClear?1:Math.min(1,g.bombs+(combo>0&&combo%BOMB_COMBO_THRESHOLD===0?1:0)),goldenBomb:allClear||g.goldenBomb,rerolls:canEarnReroll(lines)?1:g.rerolls},cleared,points,allClear,rowsCleared:rows,colsCleared:cols};
-}
 export function validSave(v:unknown):v is Game {const g=v as Game;return !!g&&Array.isArray(g.board)&&g.board.length===8&&g.board.every(r=>Array.isArray(r)&&r.length===8&&r.every(n=>Number.isInteger(n)&&n>=0&&n<=5))&&Array.isArray(g.pieces)&&g.pieces.length===3&&g.pieces.some(Boolean)&&g.pieces.every(p=>p===null||(Number.isInteger(p.color)&&p.color>=1&&p.color<=5&&Array.isArray(p.shape)&&p.shape.length>0&&p.shape.length<=4&&p.shape.every(r=>Array.isArray(r)&&r.length===p.shape[0].length&&r.length>0&&r.length<=4&&r.every(v=>v===0||v===1))&&p.shape.some(r=>r.some(Boolean))))&&(g.rerolls===0||g.rerolls===1)&&typeof g.goldenBomb==='boolean'&&(!g.goldenBomb||g.bombs===1)&&(g.bombs===0||g.bombs===1)&&[g.score,g.lines,g.combo,g.bombs].every(n=>Number.isSafeInteger(n)&&n>=0);}
 
 // The clicked cell is the blast centre; at an edge shift the full 3×3 area inward.
@@ -44,13 +34,6 @@ export function bombArea(row:number,col:number,size:1|2|3|5=3):number[] {
  const radius=Math.floor(size/2);
  const top=Math.max(0,Math.min(8-size,row-radius)),left=Math.max(0,Math.min(8-size,col-radius));
  return Array.from({length:size*size},(_,i)=>(top+Math.floor(i/size))*8+left+i%size);
-}
-export function detonate(g:Game,row:number,col:number){
- const area=bombArea(row,col,g.goldenBomb?5:3);if(g.bombs<1||!area.length)return null;
- const board=g.board.map(r=>[...r]);let count=0;
- for(const cell of area){const y=Math.floor(cell/8),x=cell%8;if(board[y][x])count++;board[y][x]=0;}
- const allClear=count>0&&board.every(r=>r.every(v=>v===0));
- return {game:{...g,board,bombs:0,goldenBomb:false,score:g.score+count*10},cleared:area,points:count*10,allClear,rowsCleared:[] as number[],colsCleared:[] as number[]};
 }
 export function restoreSave(value:unknown):Game|null {
  if(!value||typeof value!=='object')return null;
@@ -77,15 +60,4 @@ export function rerollPiece(g:Game,index:number,random:()=>number=Math.random):G
  const alternatives=playable.filter(s=>shapeClass(s)!==shapeClass(old.shape));
  const piece={shape:chooseShape(random(),alternatives.length?alternatives:playable).map(r=>[...r]),color:1+Math.floor(random()*5)};
  return {...g,rerolls:0,pieces:g.pieces.map((p,i)=>i===index?piece:p)};
-}
-
-export function bombIsLastResort(g:Game){return g.bombs>0&&g.rerolls===0&&!g.pieces.some(p=>p&&canFitShape(g.board,p.shape));}
-
-// Evaluate the resulting board after line clears and rewards, without drawing a new hand.
-export function placementRisk(g:Game,index:number,row:number,col:number):'red'|'amber'|null{
- if(g.pieces.filter(Boolean).length<=1)return null;
- const result=place(g,index,row,col);if(!result)return null;
- const next=result.game;
- if(next.pieces.some(p=>p&&canFitShape(next.board,p.shape)))return null;
- return next.bombs>0||next.rerolls>0?'amber':'red';
 }
