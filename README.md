@@ -1,0 +1,42 @@
+# Чунявая Бруня
+
+Самостоятельная пустынная головоломка 8×8 с Бруней и офлайн-PWA.
+
+Игра: https://itsokbear.github.io/block-turn-chb/ · Репозиторий: https://github.com/itsokbear/block-turn-chb
+
+Вращай каменные фигуры касанием, собирай линии и учитывай следующий шаг Бруни. Песчаные дюны, цветные камни и лавандовая Бруня — единое оформление игры. Режим и персонаж уже выбраны; переключателей Classic/Serpent нет.
+
+Выделена из [BlockTurn](https://github.com/itsokbear/block-turn). Исходная игра остаётся самостоятельной. В этом репозитории — полная копия необходимых исходников, без зависимости от соседней папки. Общий модуль `lib/game.ts` содержит геометрию, выдачу фигур и базовые бонусы, которые использует Бруня.
+
+## Работа
+
+Сначала прочитай `AGENTS.md`. Правила — [docs/RULES.md](docs/RULES.md).
+Все Node/npm, проверки и сборки выполняются **только в Docker**.
+
+```sh
+# Отдельный compose-проект brunya, http://localhost:8089
+docker compose up -d --build
+
+# Тесты и TypeScript
+./scripts/check.sh
+
+# PWA для реального адреса Pages
+docker build --target build --build-arg NEXT_PUBLIC_BASE_PATH=/block-turn-chb -t local/brunya:pages-build .
+
+# Остановка только этой игры
+docker compose down
+```
+
+## Публикация
+
+Ветка `main` → GitHub Actions → Pages. После проверок создай коммит и запусти `./scripts/publish.sh`. В настройках репозитория Pages → Source: GitHub Actions. Проверь успешный запуск Actions именно для отправленного SHA.
+
+Скрипт использует собственный deploy key этого репозитория из `.deploy/github-pages`, если он настроен; иначе обычную авторизацию Git. Ключ BlockTurn не копировать. Каталоги `.deploy/` и `.local/` не попадают в Git и Docker.
+
+## Установка и сохранения
+
+На iPhone: открой игру в Safari → Поделиться → На экран Домой. Название приложения — «Бруня», собственная иконка с персонажем. Дождись строки «Готово к игре без интернета».
+
+Сохранения `brunya-game`, `brunya-best` независимы от BlockTurn даже на общем домене GitHub Pages. Старые партии не импортируются и не изменяются. Обновление PWA сохраняет текущую партию; кнопка «Обновить» появляется после загрузки нового выпуска. Scope и start URL ограничены `/block-turn-chb/`, локально — `/`.
+
+Иконки воспроизводятся из SVG персонажа: `python3 scripts/generate-icons.py` (без сторонних библиотек). Метаданные и manifest находятся в `app/layout.tsx`, `public/manifest.webmanifest`. Пустынная тема — `app/desert.css` и `public/desert.svg`.

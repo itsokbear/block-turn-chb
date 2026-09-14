@@ -1,0 +1,10 @@
+name: brunya
+services:
+  brunya:
+    build: .
+    image: local/brunya:latest
+    ports:
+      - "8089:80"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true

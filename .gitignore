@@ -1,0 +1,25 @@
+# Reproducible dependencies, builds and caches
+/node_modules/
+/dist/
+/.next/
+/.vinext/
+/.wrangler/
+/coverage/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+*.log
+.DS_Store
+
+# Local secrets, references and release archives
+/.deploy/
+/.local/
+.env*
+*.pem
+
+# Tooling/scratch output, never part of the game source
+/.openai/
+/output/
+/outputs/
+/work/
+/releases/

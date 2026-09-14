@@ -1,0 +1,26 @@
+{
+  "id": "./",
+  "name": "Чунявая Бруня",
+  "short_name": "Бруня",
+  "description": "Вращай камни, собирай линии и исследуй пустыню вместе с Бруней.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4e6cb",
+  "theme_color": "#f4e6cb",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

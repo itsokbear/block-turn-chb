@@ -1,0 +1,20 @@
+# Only inputs needed to build and check the game enter Docker.
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!next.config.ts
+!vite.config.ts
+!.oxlintrc.json
+!.oxfmtrc.json
+!nginx.conf
+!app/
+!app/**
+!lib/
+!lib/**
+!public/
+!public/**
+!scripts/
+!scripts/**
+!tests/
+!tests/**
