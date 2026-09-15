@@ -14,27 +14,26 @@ export default function ZazerkalyeVideo({reward, sound, onClose}: {
   const frame = useRef<HTMLIFrameElement>(null);
   const [status, setStatus] = useState<PlayerState>('loading');
   const [documentLoaded, setDocumentLoaded] = useState(false);
-  const [online, setOnline] = useState(true);
+  const [online, setOnline] = useState(() => typeof navigator !== 'undefined' && navigator.onLine);
   const [lockedMuted, setLockedMuted] = useState(!sound);
   const [muted, setMuted] = useState(!sound);
   const mute = useRef(!sound);
 
   useEffect(() => {
+    if (!online) return;
     const element = dialog.current!;
     element.showModal();
     return () => element.close();
-  }, []);
+  }, [online]);
 
   useEffect(() => {
-    const update = () => setOnline(navigator.onLine);
-    update();
-    window.addEventListener('online', update);
-    window.addEventListener('offline', update);
-    return () => {
-      window.removeEventListener('online', update);
-      window.removeEventListener('offline', update);
+    const closeIfOffline = () => {
+      if (!navigator.onLine) {setOnline(false); onClose();}
     };
-  }, []);
+    closeIfOffline();
+    window.addEventListener('offline', closeIfOffline);
+    return () => window.removeEventListener('offline', closeIfOffline);
+  }, [onClose]);
 
   function send(type: string) {
     frame.current?.contentWindow?.postMessage({'x-tiktok-player': true, type}, 'https://www.tiktok.com');
@@ -70,6 +69,8 @@ export default function ZazerkalyeVideo({reward, sound, onClose}: {
     return () => {clearTimeout(timeout); window.removeEventListener('message', receive);};
   }, [online, lockedMuted]);
 
+  if (!online) return null;
+
   return <dialog ref={dialog} className="zazerkalye-video" aria-labelledby="video-title" aria-describedby="video-details"
     onCancel={event => {event.preventDefault(); onClose();}}>
     <header className="video-heading">
@@ -81,10 +82,10 @@ export default function ZazerkalyeVideo({reward, sound, onClose}: {
       {online && <iframe key={String(lockedMuted)} ref={frame} src={tiktokPlayerUrl(reward.videoId, lockedMuted)}
         title="Ролик Зазеркалья в TikTok" allow="autoplay; fullscreen" allowFullScreen
         referrerPolicy="strict-origin-when-cross-origin" onLoad={() => {setDocumentLoaded(true); send(mute.current ? 'mute' : 'unMute'); send('play');}} onError={() => setStatus('unavailable')}/>}
-      {(!online || (status === 'loading' && !documentLoaded) || status === 'unavailable') && <div className={`video-message ${status === 'loading' && online ? 'video-loading' : ''}`} role="status">
+      {((status === 'loading' && !documentLoaded) || status === 'unavailable') && <div className={`video-message ${status === 'loading' && online ? 'video-loading' : ''}`} role="status">
         <span aria-hidden="true">✦</span>
-        <p>{!online ? 'Сигнал потерялся в песках.' : status === 'loading' ? 'Ловим сигнал…' : 'Ролик сейчас недоступен.'}</p>
-        <small>{!online ? 'Ролики появятся, когда вернётся интернет.' : status === 'loading' ? 'Зазеркалье на связи' : 'Можно открыть его в TikTok или продолжить игру.'}</small>
+        <p>{status === 'loading' ? 'Ловим сигнал…' : 'Ролик сейчас недоступен.'}</p>
+        <small>{status === 'loading' ? 'Зазеркалье на связи' : 'Можно открыть его в TikTok или продолжить игру.'}</small>
         {online && status === 'unavailable' && <a href={tiktokPostUrl(reward.videoId)} target="_blank" rel="noopener noreferrer">Открыть в TikTok <ArrowUpRight size={16}/></a>}
       </div>}
       {online && status === 'blocked' && <button className="video-play" onClick={() => {send('play'); setStatus('ready');}}><Play size={20}/> Смотреть ролик</button>}

@@ -7,8 +7,8 @@ export const ZAZERKALYE_VIDEO_IDS = [
   '7685089577584987413', '7684908894593748244', '7684717139026005268',
 ] as const;
 
-export function earnsVideo(placement: boolean, lines: number) {
-  return placement && lines >= 4;
+export function earnsVideo(placement: boolean, lines: number, online: boolean) {
+  return online && placement && lines >= 4;
 }
 
 export function pickZazerkalyeVideo(previous: string | null, random: () => number = Math.random): string {

@@ -11,7 +11,7 @@ const page = readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
 const handler = ts.transpileModule(page.slice(page.indexOf(' function put('), page.indexOf(' function newGame(')), {
   compilerOptions: {target: ts.ScriptTarget.ES2022},
 }).outputText;
-function move(lines, index = 0, modal = null) {
+function move(lines, index = 0, modal = null, connection = {onLine: true}) {
   const previous = {board: Array.from({length: 8}, () => Array(8).fill(0)), pieces: [{shape: [[1]], color: 2}, null, null], lines: 10, score: 150, combo: 0};
   const result = {game: {...previous, lines: 10 + lines, score: 150 + lines * 100, combo: 1}, cleared: [0], points: lines * 100, rowsCleared: Array.from({length: lines}, (_, i) => i), colsCleared: []};
   const effects = {events: [], videos: [], modals: [], sounds: [], game: null};
@@ -19,7 +19,7 @@ function move(lines, index = 0, modal = null) {
   const lastVideo = {current: null};
   const noop = () => {};
   const scope = {
-    modal, rerollMode: false, swapping: null, current, lastVideo,
+    modal, rerollMode: false, swapping: null, current, lastVideo, navigator: connection,
     placeSerpent: () => result, bombSerpent: () => result,
     setSnakeFX: noop, snakeTimer: {current: null}, setClearRows: noop, setClearCols: noop,
     setOrbitalShake: noop, crumble: noop, setStamped: noop, stampTimer: {current: null},
@@ -33,7 +33,7 @@ function move(lines, index = 0, modal = null) {
     setTimeout: () => 1, clearTimeout: noop,
   };
   const put = new Function(...Object.keys(scope), `${handler}; return put;`)(...Object.values(scope));
-  return {accepted: put(index, 0, 0), effects, result, current};
+  return {accepted: put(index, 0, 0), put, effects, result, current, lastVideo};
 }
 
 test('4 and 5+ lines open one video celebration after committing score', () => {
@@ -58,7 +58,7 @@ test('0–3 lines and bombs never open the video; smaller celebrations still ren
     if (lines >= 2) assert.ok(effects.events[0]);
   }
   assert.deepEqual(move(5, -1).effects.videos, []);
-  assert.equal(earnsVideo(false, 5), false);
+  assert.equal(earnsVideo(false, 5, true), false);
 });
 test('an open video blocks another placement without changing the game', () => {
   const {accepted, effects} = move(4, 0, 'video');
@@ -81,4 +81,61 @@ test('player starts muted and limits recommendations to the author', () => {
   assert.equal(new URL(tiktokPlayerUrl(ZAZERKALYE_VIDEO_IDS[0], false)).searchParams.get('muted'), '0');
   assert.equal(url.searchParams.get('rel'), '0');
   assert.equal(url.searchParams.get('controls'), '1');
+});
+
+
+test('offline 4+ clears keep the normal celebration, score and sound without opening a video', () => {
+  for (const lines of [4, 5, 6]) {
+    const {accepted, effects, result, current, lastVideo} = move(lines, 0, null, {onLine: false});
+    assert.equal(accepted, true);
+    assert.equal(current.current, result.game);
+    assert.equal(effects.game, result.game);
+    assert.deepEqual(effects.videos, []);
+    assert.deepEqual(effects.modals, []);
+    assert.equal(lastVideo.current, null);
+    assert.equal(effects.events.length, 1);
+    assert.equal(effects.events[0].title, lines === 4 ? 'МАСТЕРСКИ!' : 'ГЕНИАЛЬНО!');
+    assert.equal(effects.events[0].points, result.points);
+    assert.equal(effects.sounds.length, 1);
+  }
+});
+test('connection is read at the move, and reconnecting does not replay an offline reward', () => {
+  const connection = {onLine: false};
+  const {put, effects} = move(4, 0, null, connection);
+  connection.onLine = true;
+  assert.deepEqual(effects.videos, []);
+  put(0, 0, 0);
+  assert.equal(effects.videos.length, 1);
+  connection.onLine = false;
+  put(0, 0, 0);
+  assert.equal(effects.videos.length, 1);
+  assert.equal(effects.events.at(-1).title, 'МАСТЕРСКИ!');
+});
+
+test('losing the connection closes an open video; reconnect and cleanup never reopen it', () => {
+  const component = readFileSync(new URL('../app/zazerkalye-video.tsx', import.meta.url), 'utf8');
+  const start = component.indexOf('  useEffect(() => {\n    const closeIfOffline');
+  assert.notEqual(start, -1);
+  const effect = ts.transpileModule(component.slice(start, component.indexOf('\n\n  function send', start)), {
+    compilerOptions: {target: ts.ScriptTarget.ES2022},
+  }).outputText;
+  const window = new EventTarget();
+  const connection = {onLine: true};
+  const states = [];
+  let closes = 0, cleanup;
+  new Function('useEffect', 'window', 'navigator', 'setOnline', 'onClose', effect)(
+    callback => {cleanup = callback();}, window, connection, value => states.push(value), () => {closes++;},
+  );
+  assert.equal(closes, 0);
+  connection.onLine = false;
+  window.dispatchEvent(new Event('offline'));
+  assert.equal(closes, 1);
+  assert.deepEqual(states, [false]);
+  connection.onLine = true;
+  window.dispatchEvent(new Event('online'));
+  assert.equal(closes, 1);
+  cleanup();
+  connection.onLine = false;
+  window.dispatchEvent(new Event('offline'));
+  assert.equal(closes, 1);
 });
