@@ -1,0 +1,30 @@
+/* A native modal makes the game inert and keeps keyboard focus in the reward. */
+.zazerkalye-video{width:min(94vw,860px);height:78vh;height:78svh;max-height:920px;max-width:none;margin:auto;padding:14px;border:3px double #e1c69b;border-radius:2px;background:#2b2430;color:#f8e9cc;font-family:'Courier New',monospace;box-shadow:6px 6px 0 #100f18;overflow:hidden}
+.zazerkalye-video[open]{display:flex;flex-direction:column;gap:10px}
+.zazerkalye-video::backdrop{background:#18131bcc}
+.video-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+.video-channel{margin:0 0 4px;color:#c3a5ed;font-size:10px;letter-spacing:1.5px}
+.video-heading h2{margin:0;color:#fff0be;font-size:clamp(21px,5vw,30px);letter-spacing:0;text-shadow:2px 2px #826245}
+.video-close{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;background:#44364e;color:#fff1d3;border:1px solid #d2b6dd;box-shadow:inset -2px -2px #1c1723;cursor:pointer}
+.video-details{margin:0;font-size:12px;line-height:1.4;color:#ded0e7;flex-shrink:0}
+.video-details strong{display:inline-block;color:#e3e7ae;margin-left:6px;white-space:nowrap}
+.video-screen{flex:1;min-height:0;position:relative;background:#100e15;border:1px solid #766382}
+.video-screen iframe{width:100%;height:100%;display:block;border:0}
+.video-message{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;text-align:center;background:repeating-linear-gradient(0deg,#19141f 0 2px,#211a29 2px 4px);color:#eadbf6}
+.video-message>span{font-size:42px;color:#d3b5ed}
+.video-message p{margin:0;font-size:16px;font-weight:700;line-height:1.4}
+.video-message small{font-size:12px;line-height:1.6;max-width:290px;color:#c2b3cb}
+.video-message a{display:flex;align-items:center;gap:4px;color:#f5db9e;font-size:13px;margin-top:6px}
+.video-loading{pointer-events:none}
+.video-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:8px;padding:14px;background:#e3ccf4;color:#352541;white-space:nowrap;border:2px solid #fff0d5;cursor:pointer}
+.video-credit{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;flex-shrink:0}
+.video-credit a,.video-credit button{display:flex;align-items:center;gap:4px;color:#d5bde8;line-height:1.5}
+.video-credit a{text-underline-offset:3px}
+.video-credit button{padding:7px 4px;margin:-4px 0;background:none;font:inherit;cursor:pointer}
+.video-continue{min-height:44px;flex-shrink:0;width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#d8c19a;color:#302738;border:1px solid #fff0d1;box-shadow:inset -3px -3px #9c8065;padding:10px 14px;font:700 14px 'Courier New',monospace;cursor:pointer}
+.video-continue:hover,.video-close:hover{filter:brightness(1.12)}
+.zazerkalye-video :focus-visible{outline:2px solid #ffdf90;outline-offset:2px}
+@media(max-width:360px){.zazerkalye-video{padding:10px;gap:8px}.video-channel{font-size:9px;letter-spacing:.6px}.video-details{font-size:11px}.video-credit{font-size:10px}}
+@media(max-height:500px){.zazerkalye-video{height:92svh;gap:5px;padding:8px}.video-heading h2{font-size:20px}.video-channel{font-size:9px;margin-bottom:0}.video-heading .video-close{height:36px;width:40px}.video-continue{min-height:36px;padding:6px 12px}.video-details{font-size:10px}}
+
+.video-hint{margin:0;font-size:11px;color:#dccbad;line-height:1.4;flex-shrink:0}
