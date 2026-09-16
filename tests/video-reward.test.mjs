@@ -3,18 +3,18 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 import {moveEvent} from '../lib/events.ts';
-import {earnsVideo, pickZazerkalyeVideo, ZAZERKALYE_VIDEO_IDS, tiktokPlayerUrl} from '../lib/zazerkalye-videos.ts';
+import {crossedVideoMilestone, zazerkalyeSignalLevel, videoRewardForMove, pickZazerkalyeVideo, ZAZERKALYE_VIDEO_IDS, tiktokPlayerUrl} from '../lib/zazerkalye-videos.ts';
 
 // Run the real placement handler: the video must replace (not duplicate) the
-// celebration, commit the earned score, and leave bombs outside this reward.
+// celebration and commit the earned score. Score milestones work for any scoring move.
 const page = readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
 const handler = ts.transpileModule(page.slice(page.indexOf(' function put('), page.indexOf(' function newGame(')), {
   compilerOptions: {target: ts.ScriptTarget.ES2022},
 }).outputText;
-function move(lines, index = 0, modal = null, connection = {onLine: true}) {
-  const previous = {board: Array.from({length: 8}, () => Array(8).fill(0)), pieces: [{shape: [[1]], color: 2}, null, null], lines: 10, score: 150, combo: 0};
-  const result = {game: {...previous, lines: 10 + lines, score: 150 + lines * 100, combo: 1}, cleared: [0], points: lines * 100, rowsCleared: Array.from({length: lines}, (_, i) => i), colsCleared: []};
-  const effects = {events: [], videos: [], modals: [], sounds: [], game: null};
+function move(lines, index = 0, modal = null, connection = {onLine: true}, {previousScore = 150, points = lines * 100} = {}) {
+  const previous = {board: Array.from({length: 8}, () => Array(8).fill(0)), pieces: [{shape: [[1]], color: 2}, null, null], lines: 10, score: previousScore, combo: 0};
+  const result = {game: {...previous, lines: 10 + lines, score: previousScore + points, combo: 1}, cleared: [0], points, rowsCleared: Array.from({length: lines}, (_, i) => i), colsCleared: []};
+  const effects = {events: [], videos: [], modals: [], sounds: [], notices: [], game: null, signalPulses: 0};
   const current = {current: previous};
   const lastVideo = {current: null};
   const noop = () => {};
@@ -22,14 +22,14 @@ function move(lines, index = 0, modal = null, connection = {onLine: true}) {
     modal, rerollMode: false, swapping: null, current, lastVideo, navigator: connection,
     placeSerpent: () => result, bombSerpent: () => result,
     setSnakeFX: noop, snakeTimer: {current: null}, setClearRows: noop, setClearCols: noop,
-    setOrbitalShake: noop, crumble: noop, setStamped: noop, stampTimer: {current: null},
+    setSignalPulse: update => {effects.signalPulses = update(effects.signalPulses);}, setOrbitalShake: noop, crumble: noop, setStamped: noop, stampTimer: {current: null},
     setHand: noop, setGame: game => {effects.game = game;}, setSelected: noop,
     moveEvent,
     eventTimer: {current: null}, eventId: {current: 0},
     setEvent: event => effects.events.push(event),
     setVideoReward: video => effects.videos.push(video), setModal: value => effects.modals.push(value),
-    earnsVideo, pickZazerkalyeVideo,
-    play: sound => effects.sounds.push(sound), tone: () => effects.sounds.push('move'), message: noop,
+    crossedVideoMilestone, zazerkalyeSignalLevel, videoRewardForMove, pickZazerkalyeVideo,
+    play: sound => effects.sounds.push(sound), tone: () => effects.sounds.push('move'), message: text => effects.notices.push(text),
     setTimeout: () => 1, clearTimeout: noop,
   };
   const put = new Function(...Object.keys(scope), `${handler}; return put;`)(...Object.values(scope));
@@ -47,10 +47,11 @@ test('4 and 5+ lines open one video celebration after committing score', () => {
     assert.equal(effects.videos[0].points, result.points);
     assert.ok(ZAZERKALYE_VIDEO_IDS.includes(effects.videos[0].videoId));
     assert.deepEqual(effects.events, [null]);
+    assert.deepEqual(effects.notices, ['']);
     assert.equal(effects.sounds.length, 1);
   }
 });
-test('0–3 lines and bombs never open the video; smaller celebrations still render', () => {
+test('0–3 lines and bombs without a score milestone keep their ordinary celebration', () => {
   for (const lines of [0, 1, 2, 3]) {
     const {effects} = move(lines);
     assert.deepEqual(effects.videos, []);
@@ -58,7 +59,7 @@ test('0–3 lines and bombs never open the video; smaller celebrations still ren
     if (lines >= 2) assert.ok(effects.events[0]);
   }
   assert.deepEqual(move(5, -1).effects.videos, []);
-  assert.equal(earnsVideo(false, 5, true), false);
+  assert.equal(videoRewardForMove({placement: false, lines: 5, previousScore: 0, score: 500, online: true}), null);
 });
 test('an open video blocks another placement without changing the game', () => {
   const {accepted, effects} = move(4, 0, 'video');
@@ -66,8 +67,66 @@ test('an open video blocks another placement without changing the game', () => {
   assert.equal(effects.game, null);
   assert.deepEqual(effects.sounds, []);
 });
+test('each new 10,000-point threshold opens one video, including exact hits and overshoots', () => {
+  for (const [previousScore, points, milestone] of [[9990, 10, 10000], [9980, 90, 10000], [19950, 100, 20000], [9900, 20200, 30000]]) {
+    const {effects, result, current} = move(0, 0, null, {onLine: true}, {previousScore, points});
+    assert.equal(current.current, result.game);
+    assert.equal(effects.game.score, previousScore + points);
+    assert.deepEqual(effects.modals, ['video']);
+    assert.equal(effects.videos.length, 1);
+    assert.equal(effects.videos[0].title, `${milestone.toLocaleString('ru-RU')} ОЧКОВ!`);
+    assert.equal(effects.videos[0].points, points);
+    assert.deepEqual(effects.events, [null]);
+    assert.deepEqual(effects.notices, ['']);
+    assert.equal(effects.sounds.length, 1);
+    assert.equal(effects.signalPulses, 1);
+  }
+});
+test('a saved score, a subsequent move and a new game do not replay an old milestone', () => {
+  for (const [previousScore, points] of [[10000, 0], [10000, 10], [15000, 10], [19900, 50], [30000, 100], [0, 10]]) {
+    const {effects} = move(0, 0, null, {onLine: true}, {previousScore, points});
+    assert.deepEqual(effects.videos, []);
+    assert.equal(effects.signalPulses, 0);
+  }
+  assert.equal(crossedVideoMilestone(20000, 0), null);
+});
+test('a score milestone and four lines share one video, preserving the clear and reward details', () => {
+  const {effects} = move(4, 0, null, {onLine: true}, {previousScore: 9900});
+  assert.equal(effects.videos.length, 1);
+  assert.equal(effects.videos[0].title, `${(10000).toLocaleString('ru-RU')} ОЧКОВ!`);
+  assert.equal(effects.videos[0].details, 'МАСТЕРСКИ! · 4 линии');
+  assert.deepEqual(effects.events, [null]);
+  assert.equal(effects.sounds.length, 1);
+  assert.equal(effects.signalPulses, 1);
+});
+test('points from a bomb count towards the score milestone without needing a line celebration', () => {
+  const {effects} = move(0, -1, null, {onLine: true}, {previousScore: 9990, points: 10});
+  assert.equal(effects.videos.length, 1);
+  assert.equal(effects.videos[0].details, 'Мультик за новый рубеж');
+  assert.equal(effects.sounds.length, 1);
+});
+test('offline milestones reset the signal, keep the score and never replay on reconnect', () => {
+  const connection = {onLine: false};
+  const {put, effects, current} = move(0, 0, null, connection, {previousScore: 9990, points: 10});
+  assert.equal(current.current.score, 10000);
+  assert.equal(effects.signalPulses, 1);
+  assert.deepEqual(effects.videos, []);
+  connection.onLine = true;
+  assert.deepEqual(effects.videos, []);
+  put(0, 0, 0);
+  assert.deepEqual(effects.videos, []);
+  assert.equal(effects.signalPulses, 1);
+});
+test('signal fills in 2,000-point steps and resets at every 10,000, including loaded scores', () => {
+  for (const [score, level] of [[0, 0], [1999, 0], [2000, 1], [3999, 1], [4000, 2], [6000, 3], [8000, 4], [9999, 4], [10000, 0], [11999, 0], [12000, 1], [18000, 4], [20000, 0], [36000, 3]]) {
+    assert.equal(zazerkalyeSignalLevel(score), level, `score ${score}`);
+  }
+});
 test('every catalog entry is reachable, and consecutive rewards do not repeat', () => {
+  assert.ok(ZAZERKALYE_VIDEO_IDS.length > 220);
   assert.equal(new Set(ZAZERKALYE_VIDEO_IDS).size, ZAZERKALYE_VIDEO_IDS.length);
+  assert.ok(ZAZERKALYE_VIDEO_IDS.every(id => /^\d{19}$/.test(id)));
+  assert.ok(!ZAZERKALYE_VIDEO_IDS.includes('7680278783630347540'), 'photo announcements are not cartoons');
   for (const previous of [null, ...ZAZERKALYE_VIDEO_IDS]) {
     const candidates = ZAZERKALYE_VIDEO_IDS.filter(id => id !== previous);
     assert.deepEqual(candidates.map((_, i) => pickZazerkalyeVideo(previous, () => (i + .5) / candidates.length)), candidates);

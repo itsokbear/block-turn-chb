@@ -1,7 +1,10 @@
 /* A native modal makes the game inert and keeps keyboard focus in the reward. */
 .zazerkalye-video{width:min(94vw,860px);height:78vh;height:78svh;max-height:920px;max-width:none;margin:auto;padding:14px;border:3px double #e1c69b;border-radius:2px;background:#2b2430;color:#f8e9cc;font-family:'Courier New',monospace;box-shadow:6px 6px 0 #100f18;overflow:hidden}
-.zazerkalye-video[open]{display:flex;flex-direction:column;gap:10px}
-.zazerkalye-video::backdrop{background:#18131bcc}
+.zazerkalye-video[open]{display:flex;flex-direction:column;gap:10px;animation:video-arrive 360ms cubic-bezier(.16,1,.3,1) both}
+.zazerkalye-video::backdrop{background:#18131bcc;animation:video-dim 300ms ease-out both}
+@keyframes video-arrive{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes video-dim{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.zazerkalye-video[open],.zazerkalye-video::backdrop{animation:none}}
 .video-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
 .video-channel{margin:0 0 4px;color:#c3a5ed;font-size:10px;letter-spacing:1.5px}
 .video-heading h2{margin:0;color:#fff0be;font-size:clamp(21px,5vw,30px);letter-spacing:0;text-shadow:2px 2px #826245}

@@ -16,6 +16,15 @@
 .skin-desert .bruni-head-art{filter:none}
 .skin-desert .sand-source i{border-radius:0;animation-timing-function:steps(7,end)}
 .skin-desert .score{font-family:'Courier New',monospace;text-shadow:2px 2px #d9b784}
+.score-readout{display:flex;align-items:center;flex-wrap:wrap;column-gap:7px;row-gap:2px}
+.zazerkalye-signal{display:inline-flex;flex-shrink:0;align-items:center;height:24px}
+.signal-bars{display:flex;align-items:flex-end;gap:2px;height:22px}
+.signal-bars i{--signal-fill:#e1cdaa;display:block;width:5px;height:6px;background:var(--signal-fill);border:1px solid #9f8466;box-shadow:inset 1px 1px #fff0cf;transition:background-color .2s}
+.signal-bars i:nth-child(2){height:10px}.signal-bars i:nth-child(3){height:14px}.signal-bars i:nth-child(4){height:18px}.signal-bars i:nth-child(5){height:22px}
+.signal-bars .signal-filled{--signal-fill:#825a96;border-color:#624574;box-shadow:inset 1px 1px #c7a3d7}
+.signal-peak i{animation:signal-peak 800ms ease-out}
+@keyframes signal-peak{0%,55%{background:#bb8ed0;border-color:#624574;box-shadow:0 0 5px #9c70b8}100%{background:var(--signal-fill)}}
+@media(max-width:390px){.score-readout{column-gap:5px}.signal-bars i{width:4px}}
 .skin-desert .page-footer a{color:#654332;text-decoration:underline;text-underline-offset:4px;line-height:1.6}
 .skin-desert .page-footer a:hover{color:#714995}
 .orbital-object{image-rendering:pixelated;transform-origin:50% 65%}
