@@ -22,10 +22,12 @@ body{background:#f4e6cb}
 @media(max-height:750px) and (max-width:720px){.topbar{height:70px}.skin-desert .brand>.brand-name{font-size:25px}}
 
 /* The reference sprite uses pure white for multiply compositing over the dunes. */
-.orbital-object{position:fixed;width:132px;height:132px;object-fit:contain;top:126px;right:7vw;z-index:-1;mix-blend-mode:multiply;pointer-events:none;user-select:none;opacity:.92}
-@media(max-width:1050px) and (min-width:721px){.orbital-object{width:84px;height:84px;top:113px;right:2vw}}
-@media(max-width:720px){.orbital-object{width:64px;height:64px;top:10px;right:max(64px,calc((100vw - 470px)/2 + 64px))}}
-@media(max-height:750px) and (max-width:720px){.orbital-object{width:54px;height:54px;top:8px}}
+.skin-desert{--orbital-size:132px;--orbital-top:126px;--orbital-right:7vw}
+.orbital-object{position:fixed;width:var(--orbital-size);height:var(--orbital-size);object-fit:contain;top:var(--orbital-top);right:var(--orbital-right);z-index:-1;mix-blend-mode:multiply;pointer-events:none;user-select:none;opacity:.92}
+.orbital-signal{position:fixed;display:flex;top:calc(var(--orbital-top) + var(--orbital-size)/2);right:calc(var(--orbital-right) + var(--orbital-size) + 8px);transform:translateY(-50%);pointer-events:none;user-select:none}
+@media(max-width:1050px) and (min-width:721px){.skin-desert{--orbital-size:84px;--orbital-top:113px;--orbital-right:2vw}.orbital-signal{top:var(--orbital-top);transform:none}}
+@media(max-width:720px){.skin-desert{--orbital-size:64px;--orbital-top:10px;--orbital-right:max(64px,calc((100vw - 470px)/2 + 64px))}}
+@media(max-height:750px) and (max-width:720px){.skin-desert{--orbital-size:54px;--orbital-top:8px}}
 
 /* Cleared stones split into warm grains; never flash the old graphite palette. */
 .skin-desert .cell.cleared{animation:desert-clear .48s ease-out both}
