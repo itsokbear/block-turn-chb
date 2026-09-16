@@ -11,3 +11,7 @@ Use case: background-extraction. Asset type: transparent PNG sprite for the back
 ## Финальный промпт корректировки
 
 Precise background replacement only. Preserve this exact golden grinning Orbital character and all rays, expression, colors, placement and face details unchanged. Replace ALL of the gray-white checkerboard background with perfectly flat pure white #FFFFFF, including all gaps between rays. White must be uniform, not off-white, no texture, no shadow, no halo, no checkerboard, no grid. This asset will be composited over a background using multiply blend. Keep complete ray tips inside canvas with 3 percent pure white padding. One object, square image, no added words or elements.
+
+# Логотип Зазеркалья
+
+Файл игры: `public/zazerkalye-logo.png` (1143×826, PNG с прозрачностью). Оригинал без изменений взят с сайта Зазеркалья 16 сентября 2026 года: https://zazer-kalye.com/game/logo_lowres.png. В игре уменьшен средствами CSS и ведёт на https://zazer-kalye.com; локальная копия включается в офлайн-кэш PWA.

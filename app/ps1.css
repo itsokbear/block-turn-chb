@@ -25,10 +25,15 @@
 .signal-peak i{animation:signal-peak 800ms ease-out}
 @keyframes signal-peak{0%,55%{background:#bb8ed0;border-color:#624574;box-shadow:0 0 5px #9c70b8}100%{background:var(--signal-fill)}}
 @media(max-width:390px){.score-readout{column-gap:5px}.signal-bars i{width:4px}}
-.skin-desert .page-footer a{color:#654332;text-decoration:underline;text-underline-offset:4px;line-height:1.6}
-.skin-desert .page-footer a:hover{color:#714995}
+.skin-desert .game-footer{display:grid;grid-template-columns:minmax(0,1fr) clamp(64px,20vw,80px) minmax(0,1fr);gap:8px}
+.skin-desert .game-footer>span{min-width:0;line-height:1.4}
+.skin-desert .game-footer>span .status-dot{flex-shrink:0}
+.skin-desert .game-footer>button{justify-self:end;white-space:nowrap}
+.zazerkalye-home{display:flex;align-items:center;justify-content:center;min-height:44px;padding:4px 0}
+.zazerkalye-home img{display:block;width:100%;height:auto;image-rendering:pixelated}
+.zazerkalye-home:hover img{filter:brightness(1.1)}
 .orbital-object{image-rendering:pixelated;transform-origin:50% 65%}
 .orbital-shaking{animation:ono-rock 900ms steps(12,end)}
 @keyframes ono-rock{0%,100%{transform:translate(0,0) rotate(0)}18%{transform:translate(-3px,1px) rotate(-14deg)}38%{transform:translate(3px,-2px) rotate(11deg)}58%{transform:translate(-2px,0) rotate(-8deg)}78%{transform:translate(1px,0) rotate(4deg)}}
-@media(max-width:720px){.skin-desert .page-footer{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:12px 0}.skin-desert .page-footer>span{display:none}.skin-desert .page-footer a{font-size:11px}.skin-desert .mobile-tip{font-family:Arial,sans-serif}}
+@media(max-width:720px){.skin-desert .mobile-tip{font-family:Arial,sans-serif}}
 @media(prefers-reduced-motion:reduce){.orbital-shaking{animation:none}}
